@@ -57,7 +57,7 @@ from example_app.essex_bot import *
 def readContacts(fileName):
     lst = []
     for cell in range(1):
-        contact = str("Divyesh Collge")
+        contact = str("Shubham TheFinansol")
         contact = "\"" + contact + "\""
         lst.append(contact)
     return lst
@@ -404,6 +404,7 @@ class ForgetPassword(View):
             user_name = data_dict['user_name_forget'].upper()
             password = data_dict['mobile_number']
         r = 0
+
 
         status = "Username or Mobile number is incorrect"
 
@@ -1210,7 +1211,7 @@ def NumberVerification(u_number_no):
  #       return JsonResponse(response_data)        
 #check_email_name("amankumarmandloi@gmail.com")
 
-def change_nominee(u_number_no):
+def change_nominee(input_nominee_n):
         scope = ['https://spreadsheets.google.com/feeds']
         creds = ServiceAccountCredentials.from_json_keyfile_name('example_app/client_secret.json', scope)
         client = gspread.authorize(creds)
@@ -1219,30 +1220,29 @@ def change_nominee(u_number_no):
             "https://docs.google.com/spreadsheets/d/1_qQjUcfKLZDtmZKK8tF2n12rTbO3JTU90pTXN6WisnQ/edit#gid=0").get_worksheet(
             0)
 
-        number=u_number_no
+        nominee_n=str(input_nominee_n)
         r = 0
-        if not number in sheet.col_values(3):
-            response_data = {"number": "NotFound", }
+        
+        name="Shubham" 
+        if nominee_n in sheet.col_values(5):
+            response_data = {"number": "nominee is Already exist", }
 
             return JsonResponse(response_data)
 
-        for rv in sheet.col_values(1):
+        for rv in sheet.col_values(5):
             r = r + 1
-            if rv == number:
+            if rv != name:
                 p_nominee = sheet.row_values(1)[r]
-                p_relation = sheet.row_values(1)[r]
-                sheet.update_cell(r, 5, nominee)
-                sheet.update_cell(r, 6, relation)
-                sheet.update_cell(r, 16, "No")
-                sheet.update_cell(r, 17, "Done By ChatInsure Bot")
-                sheet.update_cell(r, 18, random.choice(["Under Processing", "Under Verification", "Transaction"]))
+                sheet.update_cell(r, 5, str(nominee_n))
+                
+                """sheet.update_cell(r, 16, "No")
+                                                                sheet.update_cell(r, 17, "Done By ChatInsure Bot")
+                                                                sheet.update_cell(r, 18, random.choice(["Under Processing", "Under Verification", "Transaction"]))"""
                 break
 
-        response_data = {"p_nominee": p_nominee, "p_relation": p_relation,
-                         "name": name, "nominee": nominee, "relation": relation}
-
-        return JsonResponse(response_data)
-
+    
+        print(sheet.col_values(5))
+change_nominee("a")
 
 class Chatte(View):
     """
@@ -1382,7 +1382,7 @@ class Chatte(View):
                                 print("input_data", input_text)
 
                                 headers = {'Content-type': 'application/json/', 'Method': "POST"}
-                                url = 'http://127.0.0.1:8000/chatterbot/'
+                                url = 'http://ec2-52-66-248-85.ap-south-1.compute.amazonaws.com:1001/chatterbot/'
                                 print("input_text", input_text)
                                 response = get_html(url=url, headers=headers, post_data=input_data)
                                 response = response.text
@@ -1393,7 +1393,7 @@ class Chatte(View):
                                 print("json.loads(response)", json.loads(response))
 
                                 if str(json.loads(response)["text"]) == "policyForm":
-                                    input_box.send_keys("Please visit this link for proposal: "+"http://ec2-52-66-248-85.ap-south-1.compute.amazonaws.com:82/index1")  # + Keys.ENTER # (Uncomment it if your msg doesnt contain '\n')
+                                    input_box.send_keys("Please visit this link for proposal: "+"http://ec2-52-66-248-85.ap-south-1.compute.amazonaws.com:1001/index1")  # + Keys.ENTER # (Uncomment it if your msg doesnt contain '\n')
                                 
                                 elif str(json.loads(response)["text"]) == "FileClaim":
                                     driver.find_element_by_xpath('//*[@id="main"]/header/div[2]/div[1]/div/span').click()
@@ -1402,19 +1402,37 @@ class Chatte(View):
                                     u_name_u,u_bike_no,u_model_no,u_policy_no =NumberVerification(9899440566)
                                     
                                     input_box.send_keys("Hi " +u_name_u + " Your policy is Registred with us and the vehicle on this policy is "+u_bike_no+""+u_model_no+ " ,Your registered number is 9899440566 and policy number = "+u_policy_no+" So, Please text your claim")
-                                    input_box.send_keys(Keys.ENTER)
+                                    input_box.send_keys(Keys.ENTER) 
 
                                 elif str(json.loads(response)["text"]) == "Nominee":
                                     driver.find_element_by_xpath('//*[@id="main"]/header/div[2]/div[1]/div/span').click()
                                     username = driver.find_element_by_xpath('//*[@id="main"]/header/div[2]/div[1]/div/span').text
-                                    
                                     u_name_u,u_bike_no,u_model_no,u_policy_no =NumberVerification(9899440566)
-                                    
-                                    input_box.send_keys("Hi " +u_name_u + " Your policy is Registred with us and the vehicle on this policy is "+u_bike_no+""+u_model_no+ " ,Your registered number is 9899440566 and policy number = "+u_policy_no+" So, Please text your claim")
+                                    input_box.send_keys("Hi " +u_name_u + " Your policy is Registred with us and ,Your registered number is 9899440566 and policy number = "+u_policy_no+" So, Please text your nominee name below for change nominee,text in this formate- nominee name: 'Your nominee name here'")
                                     input_box.send_keys(Keys.ENTER)
 
-                                elif " bumped" in str(input_text).lower() or " broken" in str(input_text).lower() or  " My bike is " in str(input_text).lower() :
-                                   input_box.send_keys('Noted, I have initiated the filing of claim. Your file number is '+ "12356 "+'. When do you want to book your inspection?, Please reply with a date in DD-MM-YYYY format (as in 01-01-2019)')
+
+                                elif "nominee name :" in str(input_text).lower() :
+                                   input_box.send_keys("It is a wrong formate please enter in this formate- nominee name: 'Your nominee name here'" )
+                                   input_box.send_keys(Keys.ENTER)                                    
+                                elif "nominee name:" in str(input_text).lower() or"Nominee name:" in str(input_text).lower() or "nominee name :" in str(input_text).lower():
+
+                                    input_nominee=input_text.lower().split()
+                                    input_nominee.pop(0)
+                                    input_nominee.pop(0)
+                                    input_nominee.pop(0)
+                                    input_nominee_n=input_nominee
+                                    print("Nominee name here:", input_nominee_n)
+                                    nominee_n=change_nominee(input_nominee_n)
+                                    u_name_u =NumberVerification(9899440566)
+                                    driver.find_element_by_xpath('//*[@id="main"]/header/div[2]/div[1]/div/span').click()
+                                    username = driver.find_element_by_xpath('//*[@id="main"]/header/div[2]/div[1]/div/span').text
+                                    
+                                    input_box.send_keys("Hi " +u_name_u +" ,Your nominee has been changed successfully. ")
+                                    input_box.send_keys(Keys.ENTER)
+
+                                elif "bumped" in str(input_text).lower() or" car " in str(input_text).lower() or " broken" in str(input_text).lower() or  "bike " in str(input_text).lower() or " accident" in str(input_text).lower() :
+                                   input_box.send_keys('Noted, I have initiated the filing of claim. Your ticket number is '+ "12356 "+'. When do you want to book your inspection?, Please reply with a date in DD-MM-YYYY format (as in 01-01-2019)')
                                    input_box.send_keys(Keys.ENTER)                                    
                             
 
