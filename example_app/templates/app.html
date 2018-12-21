@@ -16,7 +16,6 @@
   <link rel="stylesheet"
    href="/static/css/custom.css"/>
 
-
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <link rel="stylesheet" type="text/css" href="https://www.nkarbooking.com/codebase/dhtmlxcalendar.css"/>
@@ -377,10 +376,10 @@ Ask ILVA. . . </h1>
 
         var $row = $('<li >',{class:"list-group-item",id:"calendar_booking",style:"background-color: white; margin-top: 63px;"});
 
-var $form = $("<div>", { id:"generaldetail"} 
+        var $form = $("<div>", { id:"generaldetail"} 
             )
 
-          $form.append("{% csrf_token %}");
+          $form.append('{% csrf_token %}');
 
 
           var $input_city = $("<div>", 

@@ -57,7 +57,7 @@ from example_app.essex_bot import *
 def readContacts(fileName):
     lst = []
     for cell in range(1):
-        contact = str("Shubham TheFinansol")
+        contact = str("Divyesh Collge")
         contact = "\"" + contact + "\""
         lst.append(contact)
     return lst
@@ -1211,7 +1211,8 @@ def NumberVerification(u_number_no):
  #       return JsonResponse(response_data)        
 #check_email_name("amankumarmandloi@gmail.com")
 
-def change_nominee(input_nominee_n):
+
+def change_nominee(input_nominee_n,u_number_no):
         scope = ['https://spreadsheets.google.com/feeds']
         creds = ServiceAccountCredentials.from_json_keyfile_name('example_app/client_secret.json', scope)
         client = gspread.authorize(creds)
@@ -1221,28 +1222,28 @@ def change_nominee(input_nominee_n):
             0)
 
         nominee_n=str(input_nominee_n)
-        r = 0
         
-        name="Shubham" 
-        if nominee_n in sheet.col_values(5):
-            response_data = {"number": "nominee is Already exist", }
-
-            return JsonResponse(response_data)
-
-        for rv in sheet.col_values(5):
-            r = r + 1
-            if rv != name:
-                p_nominee = sheet.row_values(1)[r]
-                sheet.update_cell(r, 5, str(nominee_n))
+        num= sheet.col_values(3)
+        for rv in num:
+            if rv == u_number_no:
+                r = 0 
+                for nominee in sheet.col_values(5):
+                    r = r + 1
+                    p_nominee = sheet.row_values(1)[r]
+                    sheet.update_cell(r, 5, str(nominee_n))
+                data_response= "Your Nominee has been changed successfully"
+            
+                return data_response
                 
                 """sheet.update_cell(r, 16, "No")
                                                                 sheet.update_cell(r, 17, "Done By ChatInsure Bot")
                                                                 sheet.update_cell(r, 18, random.choice(["Under Processing", "Under Verification", "Transaction"]))"""
                 break
 
-    
+
+
         print(sheet.col_values(5))
-change_nominee("a")
+        return 
 
 class Chatte(View):
     """
@@ -1415,6 +1416,7 @@ class Chatte(View):
                                 elif "nominee name :" in str(input_text).lower() :
                                    input_box.send_keys("It is a wrong formate please enter in this formate- nominee name: 'Your nominee name here'" )
                                    input_box.send_keys(Keys.ENTER)                                    
+                                
                                 elif "nominee name:" in str(input_text).lower() or"Nominee name:" in str(input_text).lower() or "nominee name :" in str(input_text).lower():
 
                                     input_nominee=input_text.lower().split()
@@ -1423,12 +1425,13 @@ class Chatte(View):
                                     input_nominee.pop(0)
                                     input_nominee_n=input_nominee
                                     print("Nominee name here:", input_nominee_n)
-                                    nominee_n=change_nominee(input_nominee_n)
-                                    u_name_u =NumberVerification(9899440566)
+                                    u_number_no=9899440567 
+                                    data_response=change_nominee(input_nominee_n,u_number_no)
+                                    u_name_u =NumberVerification(u_number_no)
                                     driver.find_element_by_xpath('//*[@id="main"]/header/div[2]/div[1]/div/span').click()
                                     username = driver.find_element_by_xpath('//*[@id="main"]/header/div[2]/div[1]/div/span').text
                                     
-                                    input_box.send_keys("Hi " +u_name_u +" ,Your nominee has been changed successfully. ")
+                                    input_box.send_keys(str(data_response))
                                     input_box.send_keys(Keys.ENTER)
 
                                 elif "bumped" in str(input_text).lower() or" car " in str(input_text).lower() or " broken" in str(input_text).lower() or  "bike " in str(input_text).lower() or " accident" in str(input_text).lower() :
