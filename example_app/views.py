@@ -57,7 +57,7 @@ from example_app.essex_bot import *
 def readContacts(fileName):
     lst = []
     for cell in range(1):
-        contact = str("Divyesh Collge")
+        contact = str("Shubham TheFinansol")
         contact = "\"" + contact + "\""
         lst.append(contact)
     return lst
@@ -1212,7 +1212,8 @@ def NumberVerification(u_number_no):
 #check_email_name("amankumarmandloi@gmail.com")
 
 
-def change_nominee(input_nominee_n,u_number_no):
+
+def change_nominee(u_number_no,input_nominee_n=None,relation=None):
         scope = ['https://spreadsheets.google.com/feeds']
         creds = ServiceAccountCredentials.from_json_keyfile_name('example_app/client_secret.json', scope)
         client = gspread.authorize(creds)
@@ -1221,29 +1222,23 @@ def change_nominee(input_nominee_n,u_number_no):
             "https://docs.google.com/spreadsheets/d/1_qQjUcfKLZDtmZKK8tF2n12rTbO3JTU90pTXN6WisnQ/edit#gid=0").get_worksheet(
             0)
 
-        nominee_n=str(input_nominee_n)
-        
         num= sheet.col_values(3)
-        for rv in num:
+        r=0
+        for rv in sheet.col_values(3):
+            r = r + 1
             if rv == u_number_no:
-                r = 0 
-                for nominee in sheet.col_values(5):
-                    r = r + 1
-                    p_nominee = sheet.row_values(1)[r]
-                    sheet.update_cell(r, 5, str(nominee_n))
-                data_response= "Your Nominee has been changed successfully"
-            
-                return data_response
-                
-                """sheet.update_cell(r, 16, "No")
-                                                                sheet.update_cell(r, 17, "Done By ChatInsure Bot")
-                                                                sheet.update_cell(r, 18, random.choice(["Under Processing", "Under Verification", "Transaction"]))"""
-                break
+                username = sheet.col_values(2)[r]
+                past_nominee = sheet.col_values(5)[r]
+                if input_nominee_n != None:
+                    sheet.update_cell(r, 5, str(input_nominee_n))
+                if relation != None:
+                    sheet.update_cell(r, 6, relation)
+                sheet.update_cell(r, 16, "No")
+                sheet.update_cell(r, 17, "Done By ChatInsure Bot")
+                sheet.update_cell(r, 18, random.choice(["Under Processing", "Under Verification", "Transaction"]))
 
+        return username, past_nominee
 
-
-        print(sheet.col_values(5))
-        return 
 
 class Chatte(View):
     """
@@ -1405,6 +1400,12 @@ class Chatte(View):
                                     input_box.send_keys("Hi " +u_name_u + " Your policy is Registred with us and the vehicle on this policy is "+u_bike_no+""+u_model_no+ " ,Your registered number is 9899440566 and policy number = "+u_policy_no+" So, Please text your claim")
                                     input_box.send_keys(Keys.ENTER) 
 
+                                elif "NCB" in str(json.loads(response)["text"]):
+                                    input_box.send_keys("""  It is a discount on premium of the Own Damage (OD) portion of your vehicle when you renew your policy, provided you have not made any claim during the last policy period. The NCB can be accumulated up to a maximum limit of 50% on OD premium. You can transfer the full benefits of NCB, even when you shift your motor insurance to ICICI Lombard from any other Insurance company.
+
+                                        CB benefits are given as per the below :""")
+                                    input_box.send_keys(Keys.ENTER) 
+
                                 elif str(json.loads(response)["text"]) == "Nominee":
                                     driver.find_element_by_xpath('//*[@id="main"]/header/div[2]/div[1]/div/span').click()
                                     username = driver.find_element_by_xpath('//*[@id="main"]/header/div[2]/div[1]/div/span').text
@@ -1412,21 +1413,33 @@ class Chatte(View):
                                     input_box.send_keys("Hi " +u_name_u + " Your policy is Registred with us and ,Your registered number is 9899440566 and policy number = "+u_policy_no+" So, Please text your nominee name below for change nominee,text in this formate- nominee name: 'Your nominee name here'")
                                     input_box.send_keys(Keys.ENTER)
 
-
-                                elif "nominee name :" in str(input_text).lower() :
-                                   input_box.send_keys("It is a wrong formate please enter in this formate- nominee name: 'Your nominee name here'" )
-                                   input_box.send_keys(Keys.ENTER)                                    
-                                
-                                elif "nominee name:" in str(input_text).lower() or"Nominee name:" in str(input_text).lower() or "nominee name :" in str(input_text).lower():
-
-                                    input_nominee=input_text.lower().split()
-                                    input_nominee.pop(0)
-                                    input_nominee.pop(0)
-                                    input_nominee.pop(0)
-                                    input_nominee_n=input_nominee
-                                    print("Nominee name here:", input_nominee_n)
+                                elif "nominee name :" in str(input_text).lower() or "nominee name:" in str(input_text).lower() or "Nominee name:" in str(input_text).lower() or "nominee name :" in str(input_text).lower():
+                                    input_nominee=str(what_input).lower()
+                                    input_nominee=input_nominee[input_nominee.find(":")+1:].strip()
                                     u_number_no=9899440567 
-                                    data_response=change_nominee(input_nominee_n,u_number_no)
+                                    username, nominee = change_nominee(input_nominee_n=input_nominee,u_number_no="9999999891")
+
+                                    data_response="Hi "+ username + " your nominee is changed from " + nominee + " to " + input_nominee
+                                    u_name_u =NumberVerification(u_number_no)
+                                    username = driver.find_element_by_xpath('//*[@id="main"]/header/div[2]/div[1]/div/span').text
+                                    
+                                    input_box.send_keys(str(data_response))
+                                    input_box.send_keys(Keys.ENTER)
+
+                                    data_response="Please provide your relation with nominee, with relation: Your relation with nominee here for example, relation:brother"
+                                    u_name_u =NumberVerification(u_number_no)
+                                    driver.find_element_by_xpath('//*[@id="main"]/header/div[2]/div[1]/div/span').click()
+                                    username = driver.find_element_by_xpath('//*[@id="main"]/header/div[2]/div[1]/div/span').text
+                                    
+                                    input_box.send_keys(str(data_response))
+                                    input_box.send_keys(Keys.ENTER)
+                                elif "relation :" in str(input_text).lower() or "relation:" in str(input_text).lower():
+                                    input_nominee=str(what_input).lower()
+                                    input_nominee=input_nominee[input_nominee.find(":")+1:].strip()
+                                    u_number_no=9899440567 
+                                    username, nominee = change_nominee(relation=input_nominee,u_number_no="9999999891")
+
+                                    data_response="Hi "+ username + " Your relation with nominee has been changed"
                                     u_name_u =NumberVerification(u_number_no)
                                     driver.find_element_by_xpath('//*[@id="main"]/header/div[2]/div[1]/div/span').click()
                                     username = driver.find_element_by_xpath('//*[@id="main"]/header/div[2]/div[1]/div/span').text
@@ -1589,6 +1602,7 @@ class ChatteMail(View):
                         url = 'http://ec2-52-66-248-85.ap-south-1.compute.amazonaws.com:82/chatterbot/'
                         messages = ListMessagesMatchingQuery(service, user_id, query="from:"+client_to_chat)
                         messages_length = len(messages)
+
                         while messages_length > 0:
                             msg_id = messages[0]['id']
                             input_text = GetMessage(service, user_id, msg_id)
