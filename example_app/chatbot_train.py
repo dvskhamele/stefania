@@ -1091,6 +1091,52 @@ Note: For details kindly refer Policy wordings from Web site for private car pac
 """,
 
 ])
+    
+    bot1.train([
+"""services provided Under under Road Side Assistance 
+""",
+
+"""
+• Breakdown support over phone
+• Minor Repairs
+• Flat Tyre 
+• Battery jump start
+• Arrangement of keys
+• Towing on breakdown/accident
+• Arrangement of rental vehicle
+• Arrangement/ Supply of fuel
+• Arrangement of Accommodation
+• Message Relay
+
+Note: For details kindly refer Policy wordings from Web site for private car package policy.
+*For list of services applicable in a policy, please refer policy schedule.
+
+""",
+
+])
+    
+    bot1.train([
+"""services provided Under under rsa 
+""",
+
+"""
+• Breakdown support over phone
+• Minor Repairs
+• Flat Tyre 
+• Battery jump start
+• Arrangement of keys
+• Towing on breakdown/accident
+• Arrangement of rental vehicle
+• Arrangement/ Supply of fuel
+• Arrangement of Accommodation
+• Message Relay
+
+Note: For details kindly refer Policy wordings from Web site for private car package policy.
+*For list of services applicable in a policy, please refer policy schedule.
+
+""",
+
+])
     bot1.train([
 """what is meaning of insurance
 """,

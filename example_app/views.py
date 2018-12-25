@@ -57,7 +57,7 @@ from example_app.essex_bot import *
 def readContacts(fileName):
     lst = []
     for cell in range(1):
-        contact = str("Shubham TheFinansol")
+        contact = str("Divyesh Collge")
         contact = "\"" + contact + "\""
         lst.append(contact)
     return lst
@@ -238,10 +238,11 @@ class TicketStatus(View):
         sheet = client.open_by_url(
             "https://docs.google.com/spreadsheets/d/1_qQjUcfKLZDtmZKK8tF2n12rTbO3JTU90pTXN6WisnQ/edit#gid=0").sheet1
 
-        data_string = request.GET.get('data')
+        data_string = request.GET.get('data') 
         data_dict = json.loads(data_string)
         text = data_dict['text']
         names = [int(s) for s in text.split() if s.isdigit()]
+
         for name in names:
             if 120000 < name < 200000:
                 name = name
@@ -251,6 +252,7 @@ class TicketStatus(View):
             response_data = {"name": "NotFound", }
 
             return JsonResponse(response_data)
+        
         r = 0
         for rv in sheet.col_values(19):
             r = r + 1
@@ -1240,6 +1242,39 @@ def change_nominee(u_number_no,input_nominee_n=None,relation=None):
         return username, past_nominee
 
 
+def ticket_generation(no,u_mobile_no):
+
+    scope = ['https://spreadsheets.google.com/feeds']
+    creds = ServiceAccountCredentials.from_json_keyfile_name('example_app/client_secret.json', scope)
+    client = gspread.authorize(creds)
+    sheet = client.open_by_url(
+            "https://docs.google.com/spreadsheets/d/1_qQjUcfKLZDtmZKK8tF2n12rTbO3JTU90pTXN6WisnQ/edit#gid=0").get_worksheet(
+            0)
+    ticket = sheet.col_values(19)
+    mobile = sheet.col_values(3)
+    
+    policy= sheet.col_values(1)
+    policy_no= 1234/2323232323/23/3433
+
+    r=0
+
+    for rv in mobile:
+        r = r + 1
+        if rv == u_mobile_no :
+            sheet.update_cell(r, 19, str(no))
+            sheet.update_cell(r, 16, "Yes")
+            sheet.update_cell(r, 18, random.choice(["Under Processing", "Under Verification", "Transaction"]))
+            sheet.update_cell(r, 17, "Done by chatinsure bot")
+            sheet.update_cell(r, 19, u_ticket_no)
+            break
+
+    data_response="Noted, I have initiated the filing of claim. Your ticket number is "+ str(no) +" . When do you want to book your inspection?, Please reply with a date in DD-MM-YYYY format (as in 01-01-2019)"
+
+    return str(data_response)
+
+#ticket_generation(str(12345),str(9899440567))
+
+
 class Chatte(View):
     """
     Provide an API endpoint to interact with ChatterBot.
@@ -1390,15 +1425,6 @@ class Chatte(View):
 
                                 if str(json.loads(response)["text"]) == "policyForm":
                                     input_box.send_keys("Please visit this link for proposal: "+"http://ec2-52-66-248-85.ap-south-1.compute.amazonaws.com:1001/index1")  # + Keys.ENTER # (Uncomment it if your msg doesnt contain '\n')
-                                
-                                elif str(json.loads(response)["text"]) == "FileClaim":
-                                    driver.find_element_by_xpath('//*[@id="main"]/header/div[2]/div[1]/div/span').click()
-                                    username = driver.find_element_by_xpath('//*[@id="main"]/header/div[2]/div[1]/div/span').text
-                                    
-                                    u_name_u,u_bike_no,u_model_no,u_policy_no =NumberVerification(9899440566)
-                                    
-                                    input_box.send_keys("Hi " +u_name_u + " Your policy is Registred with us and the vehicle on this policy is "+u_bike_no+""+u_model_no+ " ,Your registered number is 9899440566 and policy number = "+u_policy_no+" So, Please text your claim")
-                                    input_box.send_keys(Keys.ENTER) 
 
                                 elif "NCB" in str(json.loads(response)["text"]):
                                     input_box.send_keys("""  It is a discount on premium of the Own Damage (OD) portion of your vehicle when you renew your policy, provided you have not made any claim during the last policy period. The NCB can be accumulated up to a maximum limit of 50% on OD premium. You can transfer the full benefits of NCB, even when you shift your motor insurance to ICICI Lombard from any other Insurance company.
@@ -1433,6 +1459,8 @@ class Chatte(View):
                                     
                                     input_box.send_keys(str(data_response))
                                     input_box.send_keys(Keys.ENTER)
+                             
+
                                 elif "relation :" in str(input_text).lower() or "relation:" in str(input_text).lower():
                                     input_nominee=str(what_input).lower()
                                     input_nominee=input_nominee[input_nominee.find(":")+1:].strip()
@@ -1445,15 +1473,28 @@ class Chatte(View):
                                     username = driver.find_element_by_xpath('//*[@id="main"]/header/div[2]/div[1]/div/span').text
                                     
                                     input_box.send_keys(str(data_response))
-                                    input_box.send_keys(Keys.ENTER)
+                                    input_box.send_keys(Keys.ENTER)                             
+                                
+                                elif str(json.loads(response)["text"]) == "FileClaim":
+                                    driver.find_element_by_xpath('//*[@id="main"]/header/div[2]/div[1]/div/span').click()
+                                    username = driver.find_element_by_xpath('//*[@id="main"]/header/div[2]/div[1]/div/span').text
+                     
+                                    u_name_u,u_bike_no,u_model_no,u_policy_no =NumberVerification(9899440566)
+                                    
+                                    input_box.send_keys("Hi " +u_name_u + " Your policy is Registred with us and the vehicle on this policy is "+u_bike_no+""+u_model_no+ " ,Your registered number is 9899440566 and policy number = "+u_policy_no+" So, Please text your claim")
+                                    input_box.send_keys(Keys.ENTER) 
 
                                 elif "bumped" in str(input_text).lower() or" car " in str(input_text).lower() or " broken" in str(input_text).lower() or  "bike " in str(input_text).lower() or " accident" in str(input_text).lower() :
-                                   input_box.send_keys('Noted, I have initiated the filing of claim. Your ticket number is '+ "12356 "+'. When do you want to book your inspection?, Please reply with a date in DD-MM-YYYY format (as in 01-01-2019)')
+
+                                   no = random.randint(120000, 200000)
+                                   no = urno(no)
+                                   u_mobile_no= 9899440567
+                                   data_response = ticket_generation(str(no),u_mobile_no)
+                                   input_box.send_keys(data_response)
                                    input_box.send_keys(Keys.ENTER)                                    
                             
 
-
-                                elif "book garag" in str(input_text).lower():
+                                elif "book garag" in str(input_text).lower() or "1) Book Garage" in str(input_text).lower() or "1)" in str(input_text).lower():
                                     input_box.send_keys(str("Below are the garages you can book appointment with: "))  
                                     input_box.send_keys(Keys.ENTER)
 
@@ -1485,7 +1526,8 @@ class Chatte(View):
                                     input_box.send_keys("\n For example: To book an appontment with Garage #7 Sehgal Autoriders Pvt Ltd, pune. Reply with: Garage #7") 
                                     input_box.send_keys(Keys.ENTER)
 
-                                elif "book branch" in str(input_text).lower():
+
+                                elif "book branch" in str(input_text).lower() or "2) book branch" in str(input_text).lower() or "2)" in str(input_text).lower():
                                     input_box.send_keys(str("Below are the branches you can book appointment with: "))  
                                     input_box.send_keys(Keys.ENTER)
 
@@ -1510,8 +1552,9 @@ class Chatte(View):
                                             input_box.send_keys(Keys.ENTER)
                                         except:
                                             pass 
-                                    input_box.send_keys("\n For example: To book an appontment with branch #5 ICICI Lombard General Insurance Co. Ltd, Andheri (E), Mumbai, Maharashtra. Reply with: branch #5") 
+                                    input_box.send_keys("\n For example: To book an appointment with branch #5 ICICI Lombard General Insurance Co. Ltd, Andheri (E), Mumbai, Maharashtra. Reply with: branch #5") 
                                     input_box.send_keys(Keys.ENTER)
+                            
                                 elif str(json.loads(response)["text"]) == "garage" or "book appo" in str(what_input).lower():
                                     input_box.send_keys(str("Please select one of the following options: 1) Book Garage 2) Book Branch"))  
                                 else:
