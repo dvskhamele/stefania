@@ -1481,7 +1481,7 @@ class Chatte(View):
                      
                                     u_name_u,u_bike_no,u_model_no,u_policy_no =NumberVerification(9899440566)
                                     
-                                    input_box.send_keys("Hi " +u_name_u + " Your policy is Registred with us and the vehicle on this policy is "+u_bike_no+""+u_model_no+ " ,Your registered number is 9899440566 and policy number = "+u_policy_no+" So, Please text your claim")
+                                    input_box.send_keys("Hi " +u_name_u + " Your policy is Registred with us and the vehicle on this policy is "+u_bike_no+""+u_model_no+ " ,Your registered number is 9899440566 and policy number = "+u_policy_no+" So, Please text your claim after")
                                     input_box.send_keys(Keys.ENTER) 
 
                                 elif "bumped" in str(input_text).lower() or" car " in str(input_text).lower() or " broken" in str(input_text).lower() or  "bike " in str(input_text).lower() or " accident" in str(input_text).lower() :
