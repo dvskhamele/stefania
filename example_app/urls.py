@@ -1,6 +1,7 @@
 from django.conf.urls import url, include
 from django.contrib import admin
 from example_app.views import *
+from read.views import *
 
 
 urlpatterns = [
@@ -35,7 +36,7 @@ urlpatterns = [
     url(r'^train/$', TrainBotApiView.as_view(), name='train'),
     url(r'^admin/', admin.site.urls, name='admin'),
     url(r'^forget_password/$', ForgetPassword.as_view(), name='ForgetPassword'),
-
+    url(r'^upload/$', home, name="home"),
 ]
 
 

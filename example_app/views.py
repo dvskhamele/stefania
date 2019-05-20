@@ -15,9 +15,10 @@ from .secondstep import *
 from .thirdstep import *
 from django.shortcuts import render
 from .models import *
+from read.models import WorkFile
 from chatterbot.ext import django_chatterbot
 import googlemaps
-
+import pickle
 from django.http import HttpResponse
 
 import random
@@ -51,20 +52,24 @@ from selenium.webdriver.common.action_chains import ActionChains
 import datetime
 import time
 import openpyxl as excel
-
+import xlrd
 from example_app.essex_bot import *
 
 def readContacts(fileName):
     lst = []
-    for cell in range(1):
-        contact = str("Priyesh 2")
+    workfile = WorkFile.objects.latest("id")
+    name= workfile.file.name
+    wb = xlrd.open_workbook(name)     
+    sheet = wb.sheet_by_index(0)
+    rows = sheet.nrows
+    for i in range(1,rows):  
+        contact = sheet.cell_value(i, 0)
         contact = "\"" + contact + "\""
         lst.append(contact)
     return lst
 
 targets = readContacts("contacts.xlsx")
 print(targets)
-
 
 class Feedback(View):
     def get(self, request, *args, **kwargs):
@@ -1330,12 +1335,23 @@ class Chatte(View):
 
     def get(self, request, *args, **kwargs):
 
+        from selenium.webdriver.chrome.options import Options
 
-        driver = webdriver.Chrome()
+        options = Options()
+        # driver = webdriver.Chrome()
+        # options.add_argument('--profile-directory=Default')
+
+        # options.add_argument('--headless')
+        options.add_argument("--user-data-dir=./chrome/")
+        driver = webdriver.Chrome(chrome_options=options)
 
         # link to open a site
         driver.get("https://web.whatsapp.com/")
-
+        try:
+            for cookie in pickle.load(open("WACookies.pkl", "rb")):
+                driver.add_cookie(cookie)
+        except:        
+            pass
         # 10 sec wait time to load, if good internet connection is not good then increase the time
         # units in seconds
         # note this time is being used below also
@@ -1343,22 +1359,28 @@ class Chatte(View):
         wait5 = WebDriverWait(driver, 5)
         screenie = 'example_app/static/img/screenie.png'
         driver.save_screenshot(screenie)
+        try:
+            imput= driver.find_element_by_tag_name("input")
+            if len(imput.get_attribute('value')) != 0:
+                
+                imput.clear()
+        except:
+                return render(request, 'image_to_show.html')
 
+        # import cv2 
+        # import numpy as np
+        # from PIL import Image, ImageEnhance
 
-        import cv2 
-        import numpy as np
-        from PIL import Image, ImageEnhance
+        # winname = "Test"
+        # cv2.namedWindow(winname)        # Create a named window
 
-        winname = "Test"
-        cv2.namedWindow(winname)        # Create a named window
-
-        pil_image = Image.open(screenie)
-        contrast_enhancer = ImageEnhance.Contrast(pil_image)
-        pil_enhanced_image = contrast_enhancer.enhance(2)
-        enhanced_image = np.asarray(pil_enhanced_image)
-        cv2.imshow('Enhanced Image', enhanced_image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        # pil_image = Image.open(screenie)
+        # contrast_enhancer = ImageEnhance.Contrast(pil_image)
+        # pil_enhanced_image = contrast_enhancer.enhance(2)
+        # enhanced_image = np.asarray(pil_enhanced_image)
+        # cv2.imshow('Enhanced Image', enhanced_image)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
 
         input("Scan the QR code and then press Enter")
@@ -1387,38 +1409,65 @@ class Chatte(View):
                 failList = []
 
                 # Iterate over selected contacts
+                un_success=[]
                 for target in targets:
                     print(sNo, ". Target is: " + target)
-                    sNo += 1
-                    if sNo > 0:
+                    if target != '""':
                         # Select the target
                         x_arg = '//span[contains(@title,' + target + ')]'
-                        try:
-                            wait5.until(EC.presence_of_element_located((
-                                By.XPATH, x_arg
-                            )))
-                        except:
-                            # If contact not found, then search for it
-                            searBoxPath = '//*[@id="input-chatlist-search"]'
-                            wait5.until(EC.presence_of_element_located((
-                                By.ID, "input-chatlist-search"
-                            )))
-                            inputSearchBox = driver.find_element_by_id("input-chatlist-search")
-                            time.sleep(0.5)
-                            # click the search button
-                            driver.find_element_by_xpath('/html/body/div/div/div/div[2]/div/div[2]/div/button').click()
-                            time.sleep(1)
-                            inputSearchBox.clear()
-                            inputSearchBox.send_keys(target[1:len(target) - 1])
-                            print('Target Searched')
-                            # Increase the time if searching a contact is taking a long time
-                            time.sleep(4)
+                        # try:
+                        #     wait5.until(EC.presence_of_element_located((
+                        #         By.XPATH, x_arg
+                        #     )))
+                        # except:
+                        #     # If contact not found, then search for it
+                        #     searBoxPath = '//*[@id="input-chatlist-search"]'
+                        #     wait5.until(EC.presence_of_element_located((
+                        #         By.ID, "input-chatlist-search"
+                        #     )))
+                        #     inputSearchBox = driver.find_element_by_id("input-chatlist-search")
+                        #     time.sleep(0.5)
+                        #     # click the search button
+                        #     driver.find_element_by_xpath('/html/body/div/div/div/div[2]/div/div[2]/div/button').click()
+                        #     time.sleep(1)
+                        #     inputSearchBox.clear()
+                        #     inputSearchBox.send_keys(target[1:len(target) - 1])
+                        #     print('Target Searched')
+                        #     # Increase the time if searching a contact is taking a long time
+                        #     time.sleep(4)
 
                         # Select the target
-                        driver.find_element_by_xpath(x_arg).click()
+                        target = target.replace('"','')
+                        imput= driver.find_element_by_tag_name("input")
+                        if len(imput.get_attribute('value')) != 0:
+
+                            imput.clear()
+                        imput.send_keys(target)
+                        time.sleep(2)
+                        spans = driver.find_elements_by_tag_name("span")
+                        for span in spans:
+                            print(span.get_attribute('title'))
+                            title = span.get_attribute('title')
+                            if title == target:
+                                span.click()
+                                break
                         print("Target Successfully Selected")
                         time.sleep(2)
                         j = 2
+                        inp_xpath = "//div[@contenteditable='true']"
+                        try:
+                            input_box = wait.until(EC.presence_of_element_located((
+                        By.XPATH, inp_xpath)))
+                        except:
+                            un_success.append(target)
+                            continue
+                        time.sleep(1)
+                        input_box.send_keys("Promote your brand with Salvo Brand at 20% discount now. \n\n Use code: *TFS20*. \n\n Offer valid for limited time only. Like this?\n")  # + Keys.ENTER # (Uncomment it if your msg doesnt contain '\n')
+                        pickle.dump(driver.get_cookies() , open("WACookies.pkl","wb"))
+                        continue
+
+                return render(request, 'read/success.html')
+                if None:
                         while j > 0:
                             print(time.ctime())
                             ins = driver.find_elements_by_class_name("_3_7SH")
@@ -1426,24 +1475,15 @@ class Chatte(View):
                                 what_input = ins[len(ins) - 1].find_elements_by_class_name("selectable-text")[0].text
                                 input_data = input_text = json.dumps({"text": what_input }, ensure_ascii=False).encode("utf-8")
 
-		                # Select the Input Box
-                                inp_xpath = "//div[@contenteditable='true']"
-                                input_box = wait.until(EC.presence_of_element_located((
-		                    By.XPATH, inp_xpath)))
-                                time.sleep(1)
 
 		                # Send message
 		                # taeget is your target Name and msgToSend is you message'
                                 print("input_data", input_text)
 
-                                qualities = """adorable, alluring, angel awesome, attractive, a daily joy, alluring, amazing, a dream come true,
-                                                                                                                                beautiful, bedazzled, beloved, bewitching, buddy, beauty, blessing, bewitching, breathtaking,
-                                                                                                                                charming, cute, classy, cookie, cowboy, cowgirl, cuddly, clever, cutie pie, captivating, complete me"""
-
                                 """input_box.send_keys("Please visit this link for proposal: "+"http://ec2-52-66-248-85.ap-south-1.compute.amazonaws.com:1001/index1")  # + Keys.ENTER # (Uncomment it if your msg doesnt contain '\n')"""
 
                                 headers = {'Content-type': 'application/json/', 'Method': "POST"}
-                                url = 'http://ec2-52-66-248-85.ap-south-1.compute.amazonaws.com:1001/chatterbot/'
+                                url = 'http://127.0.0.1:8000/chatterbot/'
                                 print("input_text", input_text)
                                 response = get_html(url=url, headers=headers, post_data=input_data)
                                 response = response.text
@@ -1533,6 +1573,7 @@ class Chatte(View):
                                     input_box.send_keys(Keys.ENTER)
 
                                     garages = {
+                                
                                     ' #1' : ['Bafna Motorcycles, Mumbai', "18.9642628, 72.7840248", "https://www.google.co.in/maps/dir/22,+77/Bafna+Scooters+Spares+%26+Accessories,+160-A%2F3,+Banker+Building,+Grant+Road+East,+Allibhai+Premji+Marg,+Bharat+Nagar,+Grant+Road,+Mumbai,+Maharashtra+400007/@20.4805234,72.6605773,7z/data=!3m1!4b1!4m12!4m11!1m3!2m2!1d77!2d22!1m5!1m1!1s0x3be7ce12d5f78f75:0x851b25350e520ac7!2m2!1d72.8190437!2d18.9642628!3e0"],
                                     ' #2': ['Sai Service Agency Bombay Pvt. Ltd., Mumbai',"19.2195078,72.8632974", "https://www.google.co.in/maps/dir/22,+77/19.2195078,+72.8632974/@20.6026251,72.6861823,7z/data=!3m1!4b1!4m10!4m9!1m3!2m2!1d77!2d22!1m3!2m2!1d72.8632974!2d19.2195078!3e0"],
                                     ' #3' :
@@ -1591,7 +1632,8 @@ class Chatte(View):
                             
                                 elif str(json.loads(response)["text"]) == "garage" or "book appo" in str(what_input).lower():
                                     input_box.send_keys(str("Please select one of the following options: 1) Book Garage 2) Book Branch"))  
-                                else:
+                                else:   
+                                        print("Except Here")
                                         try:
                                             branch_selected = garages[str(what_input[-3:])]
                                             input_box.send_keys("Your appointment is booked with "+str(branch_selected[0]) + " with address "+str(branch_selected[2])) 
@@ -1604,7 +1646,8 @@ class Chatte(View):
                                                 input_box.send_keys(data_response) 
                                             else:
                                                 print(str(json.loads(response)["text"]))
-                                                input_box.send_keys(str(json.loads(response)["text"]))  # + Keys.ENTER # (Uncomment it if your msg doesnt contain '\n')
+                                                print("Must be  Here")
+                                                input_box.send_keys(str(json.loads(response)["text"]))
             
 		                # Link Preview Time, Reduce this time, if internet connection is Good
                                 time.sleep(4)
@@ -1613,7 +1656,6 @@ class Chatte(View):
                                 print(time.ctime())
                         success += 1
                         time.sleep(0.5)
-
                 print("\nSuccessfully Sent to: ", success)
                 print("Failed to Sent to: ", len(failList))
                 print(failList)
@@ -1621,8 +1663,7 @@ class Chatte(View):
                 count += 1
 
 
-        return JsonResponse(response_data, status=200)
-
+        return render(request, '/success.html')
 
 
        

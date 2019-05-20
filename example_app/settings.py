@@ -31,6 +31,7 @@ INSTALLED_APPS = (
     'corsheaders',
     'chatterbot.ext.django_chatterbot',
     'example_app',
+    'read'
 )
 
 # ChatterBot settings
