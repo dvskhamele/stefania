@@ -2,6 +2,8 @@ from django.conf.urls import url, include
 from django.contrib import admin
 from example_app.views import *
 from read.views import *
+# from django.urls import include, path
+
 
 
 urlpatterns = [
@@ -37,6 +39,8 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls, name='admin'),
     url(r'^forget_password/$', ForgetPassword.as_view(), name='ForgetPassword'),
     url(r'^upload/$', home, name="home"),
+    # url(r'^data/$', views.First.as_view()),
+    url(r'^data/$',SendData.as_view() , name="home"),    
 ]
 
 

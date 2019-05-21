@@ -1,3 +1,3 @@
-2019/05/20-05:53:16.658 3524 Reusing MANIFEST leveldb/MANIFEST-000001
-2019/05/20-05:53:16.659 3524 Recovering log #14
-2019/05/20-05:53:16.659 3524 Reusing old log leveldb/000014.log 
+2019/05/21-06:10:42.945 47d9 Reusing MANIFEST leveldb/MANIFEST-000001
+2019/05/21-06:10:42.945 47d9 Recovering log #24
+2019/05/21-06:10:42.945 47d9 Reusing old log leveldb/000024.log 

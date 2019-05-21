@@ -55,21 +55,155 @@ import openpyxl as excel
 import xlrd
 from example_app.essex_bot import *
 
-def readContacts(fileName):
-    lst = []
-    workfile = WorkFile.objects.latest("id")
-    name= workfile.file.name
-    wb = xlrd.open_workbook(name)     
-    sheet = wb.sheet_by_index(0)
-    rows = sheet.nrows
-    for i in range(1,rows):  
-        contact = sheet.cell_value(i, 0)
-        contact = "\"" + contact + "\""
-        lst.append(contact)
-    return lst
+def sendit(targets, mess):
+        from selenium.webdriver.chrome.options import Options
 
-targets = readContacts("contacts.xlsx")
-print(targets)
+        options = Options()
+        # driver = webdriver.Chrome()
+        # options.add_argument('--profile-directory=Default')
+
+        # options.add_argument('--headless')
+        options.add_argument("--user-data-dir=./chrome/")
+        driver = webdriver.Chrome(chrome_options=options)
+
+        # link to open a site
+        driver.get("https://web.whatsapp.com/")
+        try:
+            for cookie in pickle.load(open("WACookies.pkl", "rb")):
+                driver.add_cookie(cookie)
+        except:        
+            pass
+        # 10 sec wait time to load, if good internet connection is not good then increase the time
+        # units in seconds
+        # note this time is being used below also
+        wait = WebDriverWait(driver, 10)
+        wait5 = WebDriverWait(driver, 5)
+        time.sleep(0.5)
+        screenie = 'example_app/static/img/screenie.png'
+        driver.save_screenshot(screenie)
+        # try:
+        # imput= driver.find_element_by_tag_name("input")
+        # if len(imput.get_attribute('value')) != 0:
+            
+        #     imput.clear()
+        # except:
+        #         return render(request, 'image_to_show.html')
+
+        # import cv2 
+        # import numpy as np
+        # from PIL import Image, ImageEnhance
+
+        # winname = "Test"
+        # cv2.namedWindow(winname)        # Create a named window
+
+        # pil_image = Image.open(screenie)
+        # contrast_enhancer = ImageEnhance.Contrast(pil_image)
+        # pil_enhanced_image = contrast_enhancer.enhance(2)
+        # enhanced_image = np.asarray(pil_enhanced_image)
+        # cv2.imshow('Enhanced Image', enhanced_image)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+
+
+        # input("Scan the QR code and then press Enter")
+        time.sleep(10)
+
+        msgToSend = [
+                    [12, 32, 0, "Hello! This is test Msg. Please Ignore." + "http://bit.ly/mogjm05"]
+                ]
+
+
+
+        count = 0
+        while count < len(msgToSend):
+            # Identify time
+            print(count)
+
+            # if time matches then move further
+            if msgToSend[count][0] != msgToSend[count][1]:
+                # utility variables to tract count of success and fails
+                success = 0
+                sNo = 1
+                failList = []
+
+                # Iterate over selected contacts
+                un_success=[]
+                for targety in targets:
+                    target = "\"" + targety["name"] + "\""
+                    print(sNo, ". Target is: " + target)
+                    if target != '""':
+                        # Select the target
+                        x_arg = '//span[contains(@title,' + target + ')]'
+                        # try:
+                        #     wait5.until(EC.presence_of_element_located((
+                        #         By.XPATH, x_arg
+                        #     )))
+                        # except:
+                        #     # If contact not found, then search for it
+                        #     searBoxPath = '//*[@id="input-chatlist-search"]'
+                        #     wait5.until(EC.presence_of_element_located((
+                        #         By.ID, "input-chatlist-search"
+                        #     )))
+                        #     inputSearchBox = driver.find_element_by_id("input-chatlist-search")
+                        #     time.sleep(0.5)
+                        #     # click the search button
+                        #     driver.find_element_by_xpath('/html/body/div/div/div/div[2]/div/div[2]/div/button').click()
+                        #     time.sleep(1)
+                        #     inputSearchBox.clear()
+                        #     inputSearchBox.send_keys(target[1:len(target) - 1])
+                        #     print('Target Searched')
+                        #     # Increase the time if searching a contact is taking a long time
+                        #     time.sleep(4)
+
+                        # Select the target
+                        target = target.replace('"','')
+                        imput= driver.find_element_by_tag_name("input")
+                        if len(imput.get_attribute('value')) != 0:
+                            imput.clear()
+                        imput.send_keys(target)
+                        time.sleep(2)
+                        spans = driver.find_elements_by_tag_name("span")
+                        for span in spans:
+                            try:
+                                print(span.get_attribute('title'))
+                            except:
+                                imput.clear()
+                                continue
+                            title = span.get_attribute('title')
+                            if title == target:
+                                span.click()
+                                break
+                        print("Target Successfully Selected")
+                        time.sleep(2)
+                        j = 2
+                        inp_xpath = "//div[@contenteditable='true']"
+                        try:
+                            input_box = wait.until(EC.presence_of_element_located((
+                        By.XPATH, inp_xpath)))
+                        except:
+                            un_success.append(target)
+                            continue
+                        time.sleep(1)
+                        input_box.send_keys(mess + "\n")  #+ Keys.ENTER # (Uncomment it if your msg doesnt contain '\n')
+                        pickle.dump(driver.get_cookies() , open("WACookies.pkl","wb"))
+                        continue
+
+
+def readContacts(request):
+    lst = []
+    # workfile = WorkFile.objects.latest("id")
+    # data1 = inst.data
+    # data1 = [{"age": "21", "country": "India", "Full Name": "yadav", "country_code": "91"}, 
+    # {"age": "22", "country": "Pak", "Full Name": "yadav2", "country_code": "93"},
+    # {"age": "2", "country": "Nepal", "Full Name": "yadav3", "country_code": "94"}
+    # ]    
+    # for i in data1:  
+    #     contact = "\"" + i["name"] + "\""
+    #     lst.append(contact)
+    # return lst
+
+# targets = readContacts("contacts.xlsx")
+# print(targets)
 
 class Feedback(View):
     def get(self, request, *args, **kwargs):
@@ -1329,142 +1463,13 @@ class Chatte(View):
         # note this time is being used below also
         wait = WebDriverWait(driver, 10)
         wait5 = WebDriverWait(driver, 5)
+        time.sleep(5)
         screenie = 'example_app/static/img/screenie.png'
         driver.save_screenshot(screenie)
         return render(request, 'screenie.html')
 
     def get(self, request, *args, **kwargs):
 
-        from selenium.webdriver.chrome.options import Options
-
-        options = Options()
-        # driver = webdriver.Chrome()
-        # options.add_argument('--profile-directory=Default')
-
-        # options.add_argument('--headless')
-        options.add_argument("--user-data-dir=./chrome/")
-        driver = webdriver.Chrome(chrome_options=options)
-
-        # link to open a site
-        driver.get("https://web.whatsapp.com/")
-        try:
-            for cookie in pickle.load(open("WACookies.pkl", "rb")):
-                driver.add_cookie(cookie)
-        except:        
-            pass
-        # 10 sec wait time to load, if good internet connection is not good then increase the time
-        # units in seconds
-        # note this time is being used below also
-        wait = WebDriverWait(driver, 10)
-        wait5 = WebDriverWait(driver, 5)
-        screenie = 'example_app/static/img/screenie.png'
-        driver.save_screenshot(screenie)
-        try:
-            imput= driver.find_element_by_tag_name("input")
-            if len(imput.get_attribute('value')) != 0:
-                
-                imput.clear()
-        except:
-                return render(request, 'image_to_show.html')
-
-        # import cv2 
-        # import numpy as np
-        # from PIL import Image, ImageEnhance
-
-        # winname = "Test"
-        # cv2.namedWindow(winname)        # Create a named window
-
-        # pil_image = Image.open(screenie)
-        # contrast_enhancer = ImageEnhance.Contrast(pil_image)
-        # pil_enhanced_image = contrast_enhancer.enhance(2)
-        # enhanced_image = np.asarray(pil_enhanced_image)
-        # cv2.imshow('Enhanced Image', enhanced_image)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
-
-
-        input("Scan the QR code and then press Enter")
-
-
-        msgToSend = [
-                    [12, 32, 0, "Hello! This is test Msg. Please Ignore." + "http://bit.ly/mogjm05"]
-                ]
-
-
-
-        count = 0
-        while count < len(msgToSend):
-            # Identify time
-            print(count)
-            curTime = datetime.datetime.now()
-            curHour = curTime.time().hour
-            curMin = curTime.time().minute
-            curSec = curTime.time().second
-
-            # if time matches then move further
-            if msgToSend[count][0] != msgToSend[count][1]:
-                # utility variables to tract count of success and fails
-                success = 0
-                sNo = 1
-                failList = []
-
-                # Iterate over selected contacts
-                un_success=[]
-                for target in targets:
-                    print(sNo, ". Target is: " + target)
-                    if target != '""':
-                        # Select the target
-                        x_arg = '//span[contains(@title,' + target + ')]'
-                        # try:
-                        #     wait5.until(EC.presence_of_element_located((
-                        #         By.XPATH, x_arg
-                        #     )))
-                        # except:
-                        #     # If contact not found, then search for it
-                        #     searBoxPath = '//*[@id="input-chatlist-search"]'
-                        #     wait5.until(EC.presence_of_element_located((
-                        #         By.ID, "input-chatlist-search"
-                        #     )))
-                        #     inputSearchBox = driver.find_element_by_id("input-chatlist-search")
-                        #     time.sleep(0.5)
-                        #     # click the search button
-                        #     driver.find_element_by_xpath('/html/body/div/div/div/div[2]/div/div[2]/div/button').click()
-                        #     time.sleep(1)
-                        #     inputSearchBox.clear()
-                        #     inputSearchBox.send_keys(target[1:len(target) - 1])
-                        #     print('Target Searched')
-                        #     # Increase the time if searching a contact is taking a long time
-                        #     time.sleep(4)
-
-                        # Select the target
-                        target = target.replace('"','')
-                        imput= driver.find_element_by_tag_name("input")
-                        if len(imput.get_attribute('value')) != 0:
-
-                            imput.clear()
-                        imput.send_keys(target)
-                        time.sleep(2)
-                        spans = driver.find_elements_by_tag_name("span")
-                        for span in spans:
-                            print(span.get_attribute('title'))
-                            title = span.get_attribute('title')
-                            if title == target:
-                                span.click()
-                                break
-                        print("Target Successfully Selected")
-                        time.sleep(2)
-                        j = 2
-                        inp_xpath = "//div[@contenteditable='true']"
-                        try:
-                            input_box = wait.until(EC.presence_of_element_located((
-                        By.XPATH, inp_xpath)))
-                        except:
-                            un_success.append(target)
-                            continue
-                        time.sleep(1)
-                        input_box.send_keys("Promote your brand with Salvo Brand at 20% discount now. \n\n Use code: *TFS20*. \n\n Offer valid for limited time only. Like this?\n")  # + Keys.ENTER # (Uncomment it if your msg doesnt contain '\n')
-                        pickle.dump(driver.get_cookies() , open("WACookies.pkl","wb"))
-                        continue
 
                 return render(request, 'read/success.html')
                 if None:
@@ -1663,10 +1668,8 @@ class Chatte(View):
                 count += 1
 
 
-        return render(request, '/success.html')
-
-
-       
+                return "\nSuccessfully Sent to: ", success
+                
 class ChatteMail(View):
     """
     Provide an API endpoint to interact with ChatterBot.
